@@ -42,14 +42,15 @@ export const importDoc = async (file: File): Promise<Doc> => {
 
   const response = await fetchAPI(`documents/`, {
     method: 'POST',
-    body: JSON.stringify({ content: ydoc }),
+    body: JSON.stringify({ content: ydoc, title: file.name }),
   });
 
   if (!response.ok) {
     throw new APIError('Failed to create the doc', await errorCauses(response));
   }
 
-  return response.json() as Promise<Doc>;
+  const responseData = await response.json();
+  return responseData as Promise<Doc>;
 };
 
 interface ImportDocProps {
