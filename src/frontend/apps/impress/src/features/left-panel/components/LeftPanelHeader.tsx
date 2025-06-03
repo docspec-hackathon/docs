@@ -96,7 +96,6 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
       return;
     }
     importDoc(file);
-    console.log(file);
     setIsImportFilesModalOpen(false);
   };
 
@@ -132,20 +131,27 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
               )}
             </Box>
             {authenticated && (
-              <DropdownMenu
-                showArrow
-                disabled={isCreatingDoc}
-                options={[
-                  { label: t('From your computer'), disabled: true },
-                  { label: t('Import files...'), callback: handleImportFiles, padding: { vertical: 'xs', horizontal: 'md' } },
-                  { label: t('From connected apps'), disabled: true },
-                  { label: t('Import from Notion'), callback: handleImportNotion, padding: { vertical: 'xs', horizontal: 'md' } },
-                ]}
-              >
-                <Button role="button" tabIndex={0} onClick={createNewDoc} disabled={isCreatingDoc}>
+              <>
+                <Button tabIndex={0} onClick={createNewDoc} disabled={isCreatingDoc}>
                   {t('New doc')}
                 </Button>
-              </DropdownMenu>
+                <DropdownMenu
+                  showArrow={false}
+                  disabled={isCreatingDoc}
+                  options={[
+                    { label: t('From your computer'), disabled: true },
+                    { label: t('Import files...'), callback: handleImportFiles, padding: { vertical: 'xs', horizontal: 'md' } },
+                    { label: t('From connected apps'), disabled: true },
+                    { label: t('Import from Notion'), callback: handleImportNotion, padding: { vertical: 'xs', horizontal: 'md' } },
+                  ]}
+                >
+                  <Button aria-label="Button with only an icon"
+                    color="primary" style={{width: "22px"}}
+                    icon={<span className="material-icons">arrow_drop_down</span>}
+                    role="button" disabled={isCreatingDoc}
+                  />
+                </DropdownMenu>
+              </>
             )}
           </Box>
         </SeparatedSection>
