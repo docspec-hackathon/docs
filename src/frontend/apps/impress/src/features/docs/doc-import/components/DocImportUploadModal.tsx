@@ -1,7 +1,9 @@
 import { FileUploader, Modal } from '@openfun/cunningham-react';
 import { t } from 'i18next';
 import { useEffect, useState } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
+import { Box } from '@/components';
+import { useFileDragDrop } from '@/docs/doc-import/components/DocImportDragDrop';
 
 type FileEvent = { target: { value: File[] } };
 
@@ -41,6 +43,10 @@ export const DocImportUploadModal = ({
     }
   }, [isOpen, onClose]);
 
+  const { isDragActive, handleDragOver, handleDragLeave, handleDrop } = useFileDragDrop((file: File) =>
+    onUpload({ target: { value: [file] } })
+  );
+
   if (!visible) {
     return null;
   }
@@ -54,15 +60,32 @@ export const DocImportUploadModal = ({
       }}
       closeOnClickOutside
       title={t('Import files')}
-      visible={visible}>
-      <FileUploader
-        width="100%"
-        height="100%"
-        text={t('Import an existing Microsoft Word file as a document')}
-        multiple={false}
-        onFilesChange={onUpload}
-        state={uploadState}
-      />
+      visible={visible}
+    >
+      <Box
+        onDragEnter={handleDragOver}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        $css={
+          isDragActive
+            ? css`
+                border: 2px dashed var(--c--theme--colors--primary-600);
+                background-color: var(--c--theme--colors--greyscale-050);
+              `
+            : undefined
+        }
+      >
+        <FileUploader
+          width="100%"
+          height="100%"
+          text={t('Import an existing Microsoft Word file as a document')}
+          multiple
+          accept=".docx"
+          onFilesChange={onUpload}
+          state={uploadState}
+        />
+      </Box>
     </FadeModal>
   );
 };

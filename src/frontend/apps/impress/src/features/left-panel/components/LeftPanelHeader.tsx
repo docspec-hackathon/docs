@@ -1,10 +1,10 @@
 import { Button, FileUploader, Modal } from '@openfun/cunningham-react';
 import { t } from 'i18next';
 import { useRouter } from 'next/navigation';
-import { PropsWithChildren, useCallback, useMemo, useState } from 'react';
+import { PropsWithChildren, useCallback, useMemo, useState, ChangeEvent } from 'react';
 
 import { Box, DropdownMenu, Icon, SeparatedSection } from '@/components';
-import { DocImportUploadModal } from '@/features/left-panel/components/DocImportUploadModal';
+import { DocImportUploadModal } from '@/docs/doc-import/components/DocImportUploadModal';
 import { useCreateDoc } from '@/docs/doc-management';
 import { DocSearchModal } from '@/docs/doc-search';
 import { useAuth } from '@/features/auth';
@@ -43,9 +43,8 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
     },
   });
 
-  const { mutate: importDoc, status: importDocStatus } = useImportDoc({
+  const { mutate: importDoc, mutateAsync: importDocAsync, status: importDocStatus } = useImportDoc({
     onSuccess: (doc) => {
-      router.push(`/docs/${doc.id}`);
       togglePanel();
     },
   });
@@ -72,16 +71,6 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
     createDoc();
   };
 
-  const handleImportFilesystem = () => {
-    const fileInput = document.querySelector<HTMLInputElement>(
-      '.--docs--left-panel-header input[type="file"]',
-    );
-    if (fileInput) {
-      fileInput.onchange = uploadChanged;
-      fileInput.click();
-    }
-  };
-
   const handleImportNotion = () => {
     // TODO: open import from Notion
   };
@@ -92,26 +81,28 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
 
   type FileEvent = { target: { value: File[] } };
 
-  const uploadChanged = (event: FileEvent) => {
-    const file = event.target.value[0];
-
+  const uploadChanged = async (event: ChangeEvent<HTMLInputElement> | FileEvent) => {
+    const target = event.target as HTMLInputElement & { value?: File[] };
+    const files = target.files ?? target.value ?? [];
+    if (files.length > 1) {
+      await Promise.all(files.map((file) => importDocAsync(file)));
+      router.push('/?target=all_docs');
+      togglePanel();
+      setIsImportFilesModalOpen(false);
+      return;
+    }
+    const file = files[0];
     if (!file) {
       return;
     }
-
     importDoc(file);
+    console.log(file);
     setIsImportFilesModalOpen(false);
   };
 
   return (
     <>
       <Box $width="100%" className="--docs--left-panel-header">
-        <input
-          type="file"
-          accept=".docx"
-          style={{ display: 'none' }}
-          onChange={uploadChanged}
-        />
         <SeparatedSection>
           <Box
             $padding={{ horizontal: 'sm' }}
@@ -146,7 +137,6 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
                 disabled={isCreatingDoc}
                 options={[
                   { label: t('From your computer'), disabled: true },
-                  { label: t('Open file...'), callback: handleImportFilesystem, padding: { vertical: 'xs', horizontal: 'md' } },
                   { label: t('Import files...'), callback: handleImportFiles, padding: { vertical: 'xs', horizontal: 'md' } },
                   { label: t('From connected apps'), disabled: true },
                   { label: t('Import from Notion'), callback: handleImportNotion, padding: { vertical: 'xs', horizontal: 'md' } },

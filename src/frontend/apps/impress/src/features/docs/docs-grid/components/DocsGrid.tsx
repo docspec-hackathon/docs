@@ -5,7 +5,9 @@ import {
 } from '@openfun/cunningham-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'next/navigation';
 import { InView } from 'react-intersection-observer';
+import { useFileDrop } from '../../doc-import/components/DocsGridToasts';
 import { css } from 'styled-components';
 
 import { Box, Card, Text } from '@/components';
@@ -14,7 +16,7 @@ import { useImportDoc } from '@/features/docs/doc-management/api/useImportDoc';
 import {
   DocImportReportModal,
   exampleReport,
-} from '@/features/left-panel/components/DocImportReportModal';
+} from '@/docs/doc-import/components/DocImportReportModal';
 import { useResponsiveStore } from '@/stores';
 
 import { useResponsiveDocGrid } from '../hooks/useResponsiveDocGrid';
@@ -31,33 +33,43 @@ export const DocsGrid = ({
   const { t } = useTranslation();
 
   const { isDesktop } = useResponsiveStore();
-  const { mutate: importDoc } = useImportDoc({ onSuccess: () => {} });
+  const { mutateAsync: importDocAsync } = useImportDoc({ onSuccess: () => {} });
   const { toast } = useToastProvider();
   const [isDragActive, setIsDragActive] = useState(false);
-  const [highlightedDocId, setHighlightedDocId] = useState<string | null>(null);
+  const [highlightedDocIds, setHighlightedDocIds] = useState<string[]>([]);
   const [isErrorReportOpen, setIsErrorReportOpen] = useState(false);
+  const router = useRouter();
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragActive(true);
   };
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragActive(false);
-    const file = e.dataTransfer.files[0];
-    if (file && file.name.endsWith('.docx')) {
-      importDoc(file, {
-        onSuccess: (doc) => {
-          setHighlightedDocId(doc.id);
-          toast(t('Import completed'), VariantType.SUCCESS, { duration: 5000 });
-          setTimeout(() => setHighlightedDocId(null), 5000);
-        },
-        onError: (error) => {
-          toast(`${t('The import failed...')}`, VariantType.ERROR, {
-            duration: 10000,
-            primaryLabel: t('Show report'),
-            primaryOnClick: () => setIsErrorReportOpen(true),
-          });
-        },
+    const files = Array.from(e.dataTransfer.files).filter((file) =>
+      file.name.endsWith('.docx')
+    );
+    if (files.length === 0) {
+      return;
+    }
+    try {
+      const docs = await Promise.all(files.map((file) => importDocAsync(file)));
+      docs.forEach((doc) => {
+        toast(t('Import completed'), VariantType.SUCCESS, { duration: 5000 });
+        setHighlightedDocIds((ids) => [...ids, doc.id]);
+        setTimeout(
+          () =>
+            setHighlightedDocIds((ids) =>
+              ids.filter((i) => i !== doc.id)
+            ),
+          5000
+        );
+      });
+    } catch (error) {
+      toast(`${t('The import failed...')}`, VariantType.ERROR, {
+        duration: 10000,
+        primaryLabel: t('Show report'),
+        primaryOnClick: () => setIsErrorReportOpen(true),
       });
     }
   };
@@ -176,7 +188,7 @@ export const DocsGrid = ({
                 <Box
                   key={doc.id}
                   className={
-                    doc.id === highlightedDocId
+                    highlightedDocIds.includes(doc.id)
                       ? '--docs--item--highlighted'
                       : '--docs--item--visible'
                   }
