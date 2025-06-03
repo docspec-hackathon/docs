@@ -1,6 +1,5 @@
-import { Alert, VariantType } from '@openfun/cunningham-react';
+import { Alert, VariantType, Modal, ModalSize } from '@openfun/cunningham-react';
 import { t } from 'i18next';
-import { PropsWithChildren } from 'react';
 
 import { Box } from '@/components';
 
@@ -23,6 +22,7 @@ export interface ImportReport {
 
 export interface ImportReportProps {
   migrationReport: ImportReport;
+  onClose: () => void;
 }
 
 export const exampleReport: ImportReport = {
@@ -60,18 +60,25 @@ export const exampleReport: ImportReport = {
   ],
 };
 
-export const ImportReportPanel = ({
+export const DocImportReportModal = ({
   migrationReport,
-}: PropsWithChildren<ImportReportProps>) => {
+  onClose,
+}: ImportReportProps) => {
   return (
-    <Box $align="left" $width="100%" $maxWidth="600px" $margin="auto">
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      closeOnClickOutside
+      size={ModalSize.LARGE}
+    >
+      <Box $align="left" $width="100%" $maxWidth="600px" $margin="auto">
       {migrationReport.entries.map((entry: ImportReportEntry) => {
         return (
           <Box key={entry.id} $margin={{ vertical: '0.5rem' }}>
             <Alert
               type={
                 entry.severity == 'WARNING'
-                  ? VariantType.WARNING
+                    ? VariantType.WARNING
                   : VariantType.ERROR
               }
               additional={entry.message}
@@ -91,5 +98,6 @@ export const ImportReportPanel = ({
         );
       })}
     </Box>
+    </Modal>
   );
 };

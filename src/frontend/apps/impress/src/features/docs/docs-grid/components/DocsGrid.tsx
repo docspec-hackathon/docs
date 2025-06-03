@@ -11,6 +11,10 @@ import { css } from 'styled-components';
 import { Box, Card, Text } from '@/components';
 import { DocDefaultFilter, useInfiniteDocs } from '@/docs/doc-management';
 import { useImportDoc } from '@/features/docs/doc-management/api/useImportDoc';
+import {
+  DocImportReportModal,
+  exampleReport,
+} from '@/features/left-panel/components/DocImportReportModal';
 import { useResponsiveStore } from '@/stores';
 
 import { useResponsiveDocGrid } from '../hooks/useResponsiveDocGrid';
@@ -31,7 +35,7 @@ export const DocsGrid = ({
   const { toast } = useToastProvider();
   const [isDragActive, setIsDragActive] = useState(false);
   const [highlightedDocId, setHighlightedDocId] = useState<string | null>(null);
-
+  const [isErrorReportOpen, setIsErrorReportOpen] = useState(false);
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragActive(true);
@@ -50,6 +54,8 @@ export const DocsGrid = ({
         onError: (error) => {
           toast(`${t('The import failed...')}`, VariantType.ERROR, {
             duration: 10000,
+            primaryLabel: t('Show report'),
+            primaryOnClick: () => setIsErrorReportOpen(true),
           });
         },
       });
@@ -199,6 +205,12 @@ export const DocsGrid = ({
           </Box>
         )}
       </Card>
+      {isErrorReportOpen && (
+        <DocImportReportModal
+          migrationReport={exampleReport}
+          onClose={() => setIsErrorReportOpen(false)}
+        />
+      )}
     </Box>
   );
 };

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { PropsWithChildren, useCallback, useMemo, useState } from 'react';
 
 import { Box, DropdownMenu, Icon, SeparatedSection } from '@/components';
-import { DocImportModal } from '@/features/left-panel/components/DocImportModal';
+import { DocImportUploadModal } from '@/features/left-panel/components/DocImportUploadModal';
 import { useCreateDoc } from '@/docs/doc-management';
 import { DocSearchModal } from '@/docs/doc-search';
 import { useAuth } from '@/features/auth';
@@ -164,7 +164,7 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
       {isSearchModalOpen && (
         <DocSearchModal onClose={closeSearchModal} isOpen={isSearchModalOpen} />
       )}
-      <DocImportModal
+      <DocImportUploadModal
         isOpen={isImportFilesModalOpen}
         onClose={() => setIsImportFilesModalOpen(false)}
         onUpload={uploadChanged}

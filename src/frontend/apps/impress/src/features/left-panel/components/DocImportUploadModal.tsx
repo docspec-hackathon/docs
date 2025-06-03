@@ -21,7 +21,7 @@ const FadeModal = styled(Modal)<{ visible: boolean }>`
   height: 150%;
 `;
 
-export const DocImportModal = ({
+export const DocImportUploadModal = ({
   isOpen,
   onClose,
   onUpload,
@@ -54,8 +54,7 @@ export const DocImportModal = ({
       }}
       closeOnClickOutside
       title={t('Import files')}
-      visible={visible}
-    >
+      visible={visible}>
       <FileUploader
         width="100%"
         height="100%"
