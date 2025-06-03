@@ -23,11 +23,12 @@ export const importDoc = async (file: File): Promise<Doc> => {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const blocksJSON = await responseConversion.json();
+  const documentJSON = await responseConversion.json();
 
   const responseYDoc = await fetch('https://blocknote-api.docspec.dev/', {
     method: 'POST',
-    body: JSON.stringify(blocksJSON),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    body: JSON.stringify(documentJSON.content),
     headers: new Headers({ 'Content-Type': 'application/json' }),
   });
 

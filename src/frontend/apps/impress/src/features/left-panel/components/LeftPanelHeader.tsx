@@ -74,7 +74,7 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
 
   const handleImportFilesystem = () => {
     const fileInput = document.querySelector<HTMLInputElement>(
-      '.--docs--left-panel-header input[type="file"]'
+      '.--docs--left-panel-header input[type="file"]',
     );
     if (fileInput) {
       fileInput.onchange = uploadChanged;
@@ -106,6 +106,12 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
   return (
     <>
       <Box $width="100%" className="--docs--left-panel-header">
+        <input
+          type="file"
+          accept=".docx"
+          style={{ display: 'none' }}
+          onChange={uploadChanged}
+        />
         <SeparatedSection>
           <Box
             $padding={{ horizontal: 'sm' }}

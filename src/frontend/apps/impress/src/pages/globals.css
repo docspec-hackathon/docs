@@ -76,3 +76,13 @@ main ::-webkit-scrollbar-thumb:hover,
 nextjs-portal {
   display: none;
 }
+
+.--docs--item--highlighted {
+  background-color: rgba(0, 128, 0, 0.2);
+  transition: background-color 3s ease;
+}
+
+.--docs--item--visible {
+  background-color: transparent;
+  transition: background-color 3s ease;
+}

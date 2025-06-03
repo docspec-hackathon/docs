@@ -1,9 +1,7 @@
-import { Modal, FileUploader } from '@openfun/cunningham-react';
+import { FileUploader, Modal } from '@openfun/cunningham-react';
 import { t } from 'i18next';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
-
-import { BoxProps } from '@/components';
 
 type FileEvent = { target: { value: File[] } };
 
@@ -16,7 +14,11 @@ type DocImportModalProps = {
 
 const FadeModal = styled(Modal)<{ visible: boolean }>`
   opacity: ${({ visible }) => (visible ? 1 : 0)};
-  transition: opacity 1s ease-in-out;
+  transition: opacity 3s ease-in-out;
+  transform: scale(1.5);
+  transform-origin: center;
+  width: 150%;
+  height: 150%;
 `;
 
 export const DocImportModal = ({
@@ -46,13 +48,17 @@ export const DocImportModal = ({
   return (
     <FadeModal
       isOpen={visible}
-      onClose={() => setVisible(false)}
+      onClose={() => {
+        onClose();
+        setVisible(false);
+      }}
       closeOnClickOutside
       title={t('Import files')}
       visible={visible}
     >
       <FileUploader
         width="100%"
+        height="100%"
         text={t('Import an existing Microsoft Word file as a document')}
         multiple={false}
         onFilesChange={onUpload}

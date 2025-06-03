@@ -1,12 +1,16 @@
-import { Button } from '@openfun/cunningham-react';
+import {
+  Button,
+  VariantType,
+  useToastProvider,
+} from '@openfun/cunningham-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InView } from 'react-intersection-observer';
-import { useState } from 'react';
 import { css } from 'styled-components';
 
 import { Box, Card, Text } from '@/components';
-import { useImportDoc } from '@/features/docs/doc-management/api/useImportDoc';
 import { DocDefaultFilter, useInfiniteDocs } from '@/docs/doc-management';
+import { useImportDoc } from '@/features/docs/doc-management/api/useImportDoc';
 import { useResponsiveStore } from '@/stores';
 
 import { useResponsiveDocGrid } from '../hooks/useResponsiveDocGrid';
@@ -24,7 +28,9 @@ export const DocsGrid = ({
 
   const { isDesktop } = useResponsiveStore();
   const { mutate: importDoc } = useImportDoc({ onSuccess: () => {} });
+  const { toast } = useToastProvider();
   const [isDragActive, setIsDragActive] = useState(false);
+  const [highlightedDocId, setHighlightedDocId] = useState<string | null>(null);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -35,7 +41,18 @@ export const DocsGrid = ({
     setIsDragActive(false);
     const file = e.dataTransfer.files[0];
     if (file && file.name.endsWith('.docx')) {
-      importDoc(file);
+      importDoc(file, {
+        onSuccess: (doc) => {
+          setHighlightedDocId(doc.id);
+          toast(t('Import completed'), VariantType.SUCCESS, { duration: 5000 });
+          setTimeout(() => setHighlightedDocId(null), 5000);
+        },
+        onError: (error) => {
+          toast(`${t('The import failed...')}`, VariantType.ERROR, {
+            duration: 10000,
+          });
+        },
+      });
     }
   };
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
@@ -82,13 +99,18 @@ export const DocsGrid = ({
       $maxHeight="calc(100vh - 52px - 2rem)"
       $align="center"
       className="--docs--doc-grid"
+      onDragEnter={handleDragOver}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      $css={isDragActive ? css`
-        border: 2px dashed var(--c--theme--colors--primary-600);
-        background-color: var(--c--theme--colors--greyscale-050);
-      ` : undefined}
+      $css={
+        isDragActive
+          ? css`
+              border: 2px dashed var(--c--theme--colors--primary-600);
+              background-color: var(--c--theme--colors--greyscale-050);
+            `
+          : undefined
+      }
     >
       <DocsGridLoader isLoading={isRefetching || loading} />
       <Card
@@ -145,7 +167,16 @@ export const DocsGrid = ({
 
             {data?.pages.map((currentPage) => {
               return currentPage.results.map((doc) => (
-                <DocsGridItem doc={doc} key={doc.id} />
+                <Box
+                  key={doc.id}
+                  className={
+                    doc.id === highlightedDocId
+                      ? '--docs--item--highlighted'
+                      : '--docs--item--visible'
+                  }
+                >
+                  <DocsGridItem doc={doc} />
+                </Box>
               ));
             })}
 
