@@ -1,9 +1,10 @@
-import { Button, FileUploader } from '@openfun/cunningham-react';
+import { Button, FileUploader, Modal } from '@openfun/cunningham-react';
 import { t } from 'i18next';
 import { useRouter } from 'next/navigation';
 import { PropsWithChildren, useCallback, useMemo, useState } from 'react';
 
-import { Box, Icon, SeparatedSection } from '@/components';
+import { Box, DropdownMenu, Icon, SeparatedSection } from '@/components';
+import { DocImportModal } from '@/features/left-panel/components/DocImportModal';
 import { useCreateDoc } from '@/docs/doc-management';
 import { DocSearchModal } from '@/docs/doc-search';
 import { useAuth } from '@/features/auth';
@@ -16,6 +17,7 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
   const router = useRouter();
   const { authenticated } = useAuth();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isImportFilesModalOpen, setIsImportFilesModalOpen] = useState(false);
 
   const openSearchModal = useCallback(() => {
     const isEditorToolbarOpen =
@@ -36,10 +38,6 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
 
   const { mutate: createDoc, isPending: isCreatingDoc } = useCreateDoc({
     onSuccess: (doc) => {
-      console.log(doc)
-
-      debugger;
-
       router.push(`/docs/${doc.id}`);
       togglePanel();
     },
@@ -74,6 +72,24 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
     createDoc();
   };
 
+  const handleImportFilesystem = () => {
+    const fileInput = document.querySelector<HTMLInputElement>(
+      '.--docs--left-panel-header input[type="file"]'
+    );
+    if (fileInput) {
+      fileInput.onchange = uploadChanged;
+      fileInput.click();
+    }
+  };
+
+  const handleImportNotion = () => {
+    // TODO: open import from Notion
+  };
+
+  const handleImportFiles = () => {
+    setIsImportFilesModalOpen(true);
+  };
+
   type FileEvent = { target: { value: File[] } };
 
   const uploadChanged = (event: FileEvent) => {
@@ -83,9 +99,8 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
       return;
     }
 
-    console.log('file', file);
-
     importDoc(file);
+    setIsImportFilesModalOpen(false);
   };
 
   return (
@@ -120,36 +135,35 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
               )}
             </Box>
             {authenticated && (
-              <Button onClick={createNewDoc} disabled={isCreatingDoc}>
-                {t('New doc')}
-              </Button>
+              <DropdownMenu
+                showArrow
+                disabled={isCreatingDoc}
+                options={[
+                  { label: t('From your computer'), disabled: true },
+                  { label: t('Open file...'), callback: handleImportFilesystem, padding: { vertical: 'xs', horizontal: 'md' } },
+                  { label: t('Import files...'), callback: handleImportFiles, padding: { vertical: 'xs', horizontal: 'md' } },
+                  { label: t('From connected apps'), disabled: true },
+                  { label: t('Import from Notion'), callback: handleImportNotion, padding: { vertical: 'xs', horizontal: 'md' } },
+                ]}
+              >
+                <Button role="button" tabIndex={0} onClick={createNewDoc} disabled={isCreatingDoc}>
+                  {t('New doc')}
+                </Button>
+              </DropdownMenu>
             )}
           </Box>
         </SeparatedSection>
-        {authenticated && (
-          <SeparatedSection>
-            <Box
-              $padding={{ horizontal: 'sm' }}
-              $width="100%"
-              $direction="row"
-              $justify="space-between"
-              $align="center"
-            >
-              <FileUploader
-                width="100%"
-                text="Import an existing Microsoft Word file as a document."
-                multiple={false}
-                onFilesChange={uploadChanged}
-                state={uploadDocImportStatus}
-              />
-            </Box>
-          </SeparatedSection>
-        )}
         {children}
       </Box>
       {isSearchModalOpen && (
         <DocSearchModal onClose={closeSearchModal} isOpen={isSearchModalOpen} />
       )}
+      <DocImportModal
+        isOpen={isImportFilesModalOpen}
+        onClose={() => setIsImportFilesModalOpen(false)}
+        onUpload={uploadChanged}
+        uploadState={uploadDocImportStatus}
+      />
     </>
   );
 };
