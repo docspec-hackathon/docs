@@ -132,7 +132,7 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
             </Box>
             {authenticated && (
               <>
-                <Button tabIndex={0} onClick={createNewDoc} disabled={isCreatingDoc}>
+                <Button tabIndex={0} onClick={createNewDoc} disabled={isCreatingDoc} className="--docs--create-button">
                   {t('New doc')}
                 </Button>
                 <DropdownMenu
@@ -146,7 +146,7 @@ export const LeftPanelHeader = ({ children }: PropsWithChildren) => {
                   ]}
                 >
                   <Button aria-label="Button with only an icon"
-                    color="primary" style={{width: "22px"}}
+                    color="primary" className="--docs--import-button"
                     icon={<span className="material-icons">arrow_drop_down</span>}
                     role="button" disabled={isCreatingDoc}
                   />
