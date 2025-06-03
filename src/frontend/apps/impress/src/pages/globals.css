@@ -86,3 +86,17 @@ nextjs-portal {
   background-color: transparent;
   transition: background-color 3s ease;
 }
+
+.--docs--create-button, .--docs--create-button:hover {
+  border-right-color: white;
+  margin-left: auto;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.--docs--import-button, .--docs--import-button:hover {
+  width: 22px !important;
+  border-right-color: white;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
